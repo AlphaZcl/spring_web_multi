@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--包扫描-->
+    <context:component-scan base-package="top.app"/>
+
+
+
+    <!--读取配置文件-->
+    <context:property-placeholder location="classpath:conf/properties/*"/>
+
+    <!--数据库druid连接池-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!--springEL语法-->
+        <property name="driverClassName" value="${jdbc.dataDriver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+    </bean>
+
+    <!--创建会话工厂对象SqlSessionFactoryBean-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--读取映射文件-->
+        <property name="mapperLocations">
+            <array>
+                <value>classpath:conf/sqlmap/*</value>
+            </array>
+        </property>
+        <!--配置mybatis主配置文件-->
+        <property name="configLocation" value="classpath:conf/springorm/mybatis_config.xml"/>
+        <!-- 配置别名，使用包扫描 -->
+        <!--<property name="typeAliasesPackage" value="top.app.dao.entity"/>-->
+    </bean>
+
+    <!-- 使用包扫描创建代理对象，包下面所有Mapper接口统一创建代理对象 使用桥梁包下面 ： org.mybatis.spring.mapper.MapperScannerConfigurer
+        可以包扫描创建所有映射接口的代理对象 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 配置SqlSessionFactoryBean的名称 -->
+        <property name="basePackage" value="top.app"/>
+        <!-- 可选，如果不写，Spring启动时候。容器中。自动会按照类型去把SqlSessionFactory对象注入进来 -->
+        <!-- <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/> -->
+
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+
+    </bean>
+
+    <!--事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--启动事务注解-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+</beans>

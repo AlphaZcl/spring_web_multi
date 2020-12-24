@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.app.dao.mapper.UserInfoMapper">
+    
+    <resultMap id="userInfoMap" type="UserInfo">
+        <id column="sys_id" property="sysId"/>
+        <result column="user_acco" property="userAcco"/>
+        <result column="user_name" property="userName"/>
+        <result column="phone_no" property="phoneNo"/>
+        <result column="email" property="email"/>
+        <result column="salary" property="salary"/>
+    </resultMap>
+    
+    <select id="findAll" resultType="UserInfo" resultMap="userInfoMap">
+        SELECT * FROM user_info
+    </select>
+
+    <select id="findOne" resultType="UserInfo" resultMap="userInfoMap">
+        SELECT  * FROM user_info WHERE sys_id = #{id}
+    </select>
+</mapper>
