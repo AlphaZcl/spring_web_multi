@@ -64,6 +64,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${top.multi.web.jackson.version}</version>
+        </dependency>
+
+        <!--javax.servlet-->
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>${top.multi.web.javax.servlet.version}</version>

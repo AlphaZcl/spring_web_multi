@@ -17,5 +17,11 @@
     <a href="/testweb/mapJson?sysId=2">testMapJson</a>
     <a href="/testweb/listJson?sysId=2">testListJson</a>
     <a href="/testweb/pojoJson?sysId=2">testPojoJson</a>
+    <br/>
+    <a href="/testweb/mvJson?sysId=2">testMvJson</a>
+    <a href="/testweb/strJson?sysId=2">testStrJson</a>
+    <a href="/testweb/mapJson?sysId=2">testMapJson</a>
+    <a href="/testweb/listJson?sysId=2">testListJson</a>
+    <a href="/testweb/pojoJson?sysId=2">testPojoJson</a>
 </body>
 </html>

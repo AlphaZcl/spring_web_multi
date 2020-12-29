@@ -10,6 +10,9 @@
 
     <context:component-scan base-package="top.app"/>
 
+    <!--配置文件-->
+    <context:property-placeholder location="classpath:testconf/properties/*" ignore-unresolvable="true"/>
+
     <!--视图解析器-->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/views/"/>
