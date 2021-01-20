@@ -2,32 +2,115 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-                           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+                           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
 
     <!--包扫描-->
     <context:component-scan base-package="top.app"/>
 
-
-
     <!--读取配置文件-->
     <context:property-placeholder location="classpath:conf/properties/*" ignore-unresolvable="true"/>
 
-    <!--数据库druid连接池-->
-    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
-        <!--springEL语法-->
+    <!--开启代理对象自动生成-->
+    <aop:aspectj-autoproxy/>
+
+    <!--数据源公共配置-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <!--驱动配置-->
         <property name="driverClassName" value="${jdbc.dataDriver}"/>
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
+        <!--druid开启日志 value是日志间隔时间，单位是ms-->
+        <!--<property name="timeBetweenLogStatsMillis" value="${jdbc.timeBetweenLogStatsMillis}"/>-->
+        <!--初始连接数-->
+        <!--<property name="initialSize" value="${jdbc.initialSize}"/>-->
+        <!--连接池中可同时连接的最大的连接数，一些版本maxActive配置选项已重命名为maxTotal-->
         <property name="maxActive" value="${jdbc.maxActive}"/>
+        <!--最小连接池数量    maxIdle已不再使用，配置了也没效果-->
+        <!--<property name="minIdle" value="${jdbc.minIdle}"/>-->
+        <!--最大等待毫秒数, 单位为 ms, 超过时间会出错误信息-->
+        <property name="maxWait" value="${jdbc.maxWait}"/>
+        <!--配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒-->
+        <property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}"/>
+        <!--配置一个连接在池中最小生存的时间,最小可被驱逐时间，单位是毫秒-->
+        <!--<property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}"/>-->
+        <!--验证数据库连接的有效性Oracle : select 1 from dual           Mysql : select 1-->
+        <property name="validationQuery" value="select 1"/>
+        <!--testOnBorrow和testOnReturn在生产环境一般是不开启的，主要是性能考虑。
+        失效连接主要通过testWhileIdle保证，如果获取到了不可用的数据库连接，一般由应用处理异常。-->
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="proxyFilters">
+            <list>
+                <ref bean="log-filter"/>
+                <ref bean="stat-filter"/>
+            </list>
+        </property>
+        <!--属性类型是字符串，通过别名的方式配置扩展插件，常用的插件有：
+            监控统计用的filter:stat
+            日志用的filter:log4j
+            防御sql注入的filter:wall-->
+        <property name="filters" value="stat,wall" />
+    </bean>
+
+    <!--druid监控-->
+    <bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
+        <!--慢查询-->
+        <property name="mergeSql" value="true"/>
+        <property name="slowSqlMillis" value="1000"/>
+        <property name="logSlowSql" value="true"/>
+    </bean>
+
+    <!--将监控到的数据持久化到日志-->
+    <bean id="log-filter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter">
+        <!--表示是否显示SQL语句-->
+        <property name="statementExecutableSqlLogEnable" value="true"/>
+        <!--表示是否显示结果集-->
+        <property name="resultSetLogEnabled" value="false"/>
+        <!--所有DataSource相关的日志-->
+        <property name="dataSourceLogEnabled" value="true" />
+        <!--所有statement相关的日志-->
+        <property name="statementLogEnabled" value="true" />
+        <!--所有连接相关的日志-->
+        <property name="connectionLogEnabled" value="true" />
+    </bean>
+
+    <!--数据源1-->
+    <!--<bean id="ds1" parent="dataSource" init-method="init" destroy-method="close">-->
+        <!--<property name="url" value="${ds1.jdbc.url}"/>-->
+        <!--<property name="username" value="${ds1.jdbc.username}"/>-->
+        <!--<property name="password" value="${ds1.jdbc.password}"/>-->
+    <!--</bean>-->
+
+    <!--数据源2-->
+    <bean id="ds2" parent="dataSource" init-method="init" destroy-method="close">
+        <property name="url" value="${ds2.jdbc.url}"/>
+        <property name="username" value="${ds2.jdbc.username}" />
+        <property name="password" value="${ds2.jdbc.password}" />
+    </bean>
+
+    <!--数据源路由组件-->
+    <bean id="dynamicDataSource" class="top.app.dao.dynamicManager.DynamicDataSource">
+        <property name="defaultDataSourceNm" value="ds2"/>
+        <property name="dataSourceNmList" >
+            <list>
+                <!--<value>ds1</value>-->
+                <value>ds2</value>
+            </list>
+        </property>
+        <property name="targetDataSources">
+            <map key-type="java.lang.String">
+                <!--<entry key="ds1" value-ref="ds1"/>-->
+                <entry key="ds2" value-ref="ds2"/>
+            </map>
+        </property>
+        <property name="defaultTargetDataSource" ref="ds2"/>
     </bean>
 
     <!--创建会话工厂对象SqlSessionFactoryBean-->
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
+        <property name="dataSource" ref="dynamicDataSource"/>
         <!--读取映射文件-->
         <property name="mapperLocations">
             <array>
@@ -54,11 +137,11 @@
 
     <!--事务管理器-->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        <property name="dataSource" ref="dataSource"/>
+        <property name="dataSource" ref="dynamicDataSource"/>
     </bean>
 
     <!--启动事务注解-->
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <tx:annotation-driven transaction-manager="transactionManager" order="2"/>
 
 
 </beans>

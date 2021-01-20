@@ -43,7 +43,7 @@ public class TestWebJsonController {
         return "success";
     }
 
-    @RequestMapping("mvJson")
+    @RequestMapping(value = "mvJson",produces ="application/json;charset=UTF-8" )
     @ResponseBody
     public ModelAndView test2(@RequestParam(value = "sysId", required = false, defaultValue = "0") Integer id) {
         UserInfo resUser = testService.testServer2(id);
@@ -94,7 +94,7 @@ public class TestWebJsonController {
         return jsonStr;
     }
 
-    @RequestMapping("mapJson")
+    @RequestMapping(value = "mapJson",produces = "application/json;charset=utf-8")
     @ResponseBody
     public Map<String,Object> test4(@RequestParam(value = "sysId", required = false, defaultValue = "0") Integer id){
         UserInfo resUser = testService.testServer2(id);

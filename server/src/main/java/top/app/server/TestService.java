@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import top.app.dao.dynamicManager.TargetDataSource;
 import top.app.dao.entity.UserInfo;
 import top.app.dao.mapper.UserInfoMapper;
 
@@ -18,7 +19,8 @@ import java.util.List;
  * @date 2020/12/21 13:58
  */
 @Service
-@Transactional(isolation = Isolation.REPEATABLE_READ)
+@Transactional
+@TargetDataSource(value = "ds2")
 public class TestService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestService.class);
